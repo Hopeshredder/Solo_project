@@ -5,11 +5,13 @@ from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny
 from rest_framework import status as s
 
 # Handles the Sign-up feature
 class Sign_Up(APIView):
+    permission_classes = [AllowAny]
+
     def post(self,request):
         # Gets user information from the request and then sets the username to be equal to the email provided
         data = request.data.copy()
@@ -28,6 +30,8 @@ class Sign_Up(APIView):
 
 # Handles the Log-in feature
 class Log_in(APIView):
+    permission_classes = [AllowAny]
+    
     def post(self, request):
         # Grabs who the user is from the request and authenticates them through their email and password
         data = request.data.copy()
@@ -43,10 +47,6 @@ class Log_in(APIView):
 
 # Handles the Log-out feature
 class Log_out(APIView):
-    # Authenticates that the logged in user has a valid token
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
     def post(self, request):
         # Deletes the currently used authentication token, loggin the user out
         request.user.auth_token.delete()
@@ -55,14 +55,12 @@ class Log_out(APIView):
 
 # Handles grabbing the information of the currently signed in user
 class Info(APIView):
-    # Authenticates that the logged in user has a valid token
-    authentication_classes = [TokenAuthentication]
-    permission_classes = [IsAuthenticated]
-
     def get(self, request):
         serializer = ClientSerializer(request.user)
         return Response({"user": serializer.data})
     
 class Test_view(APIView):
+    permission_classes = [AllowAny]
+
     def get(self, request):
         return Response("Hello world")
