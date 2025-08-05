@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import './App.css'
 import NavBar from './components/NavBar'
 import { Outlet, useLoaderData, useNavigate } from 'react-router-dom'
-import { api } from './pages/utilities'
+import { api } from './utilities'
 
 function App() {
   const [user, setUser] = useState(useLoaderData());

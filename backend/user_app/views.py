@@ -22,7 +22,7 @@ class Sign_Up(APIView):
         if new_client.is_valid():
             client = new_client.save()
             token_obj = Token.objects.create(user=client)
-            return Response({'client':client.email, "token": token_obj.key}, status=s.HTTP_201_CREATED)
+            return Response({'user': ClientSerializer(client).data, "token": token_obj.key}, status=s.HTTP_201_CREATED)
         else:
             return Response(new_client.errors, status=s.HTTP_400_BAD_REQUEST)
 
@@ -37,7 +37,7 @@ class Log_in(APIView):
         if client:
             login(request, user=client)
             token_obj, token_created = Token.objects.get_or_create(user=client)
-            return Response({'client':client.email, "token": token_obj.key}, status = s.HTTP_200_OK)
+            return Response({'user': ClientSerializer(client).data, "token": token_obj.key}, status=s.HTTP_200_OK)
         else:
             return Response("No user matching credentials", status=s.HTTP_404_NOT_FOUND)
 
@@ -60,11 +60,9 @@ class Info(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        # Returns the info of the logged in user
-        return Response({
-            'username':request.user.email,
-            "email":request.user.email,
-            'first_name':request.user.first_name,
-            'last_name':request.user.last_name,
-            'token':request.user.auth_token.key
-        }, status=s.HTTP_200_OK)
+        serializer = ClientSerializer(request.user)
+        return Response({"user": serializer.data})
+    
+class Test_view(APIView):
+    def get(self, request):
+        return Response("Hello world")

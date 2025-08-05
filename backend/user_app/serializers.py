@@ -16,7 +16,8 @@ class ClientSerializer(ModelSerializer):
         model = Client
         fields = "__all__"
 
-    def create(self, validated):
-        new_client = Client.objects.create_user(**validated)
+    def create(self, validated_data):
+        validated_data["username"] =  validated_data["email"]
+        new_client = Client.objects.create_user(**validated_data)
         new_client.save()
         return new_client

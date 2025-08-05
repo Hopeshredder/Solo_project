@@ -10,8 +10,8 @@ import django.core.validators as v
     # password
 class Client(AbstractUser):
     email = models.EmailField(unique=True)
-    first_name = models.CharField(validators=[validate_name_format, v.MaxLengthValidator(20), v.MinLengthValidator(2)])
-    last_name = models.CharField(validators=[validate_name_format, v.MaxLengthValidator(30), v.MinLengthValidator(2)])
+    first_name = models.CharField(validators=[validate_name_format, v.MaxLengthValidator(20), v.MinLengthValidator(2)], null=True, blank=True)
+    last_name = models.CharField(validators=[validate_name_format, v.MaxLengthValidator(30), v.MinLengthValidator(2)], null=True, blank=True)
     
 
     USERNAME_FIELD = 'email'

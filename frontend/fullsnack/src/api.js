@@ -1,32 +1,40 @@
 import axios from 'axios';
+import { api } from './utilities';
 
 
-export const registerUser = async (email, password) => {
-    const response = await api.post("users/signup/", { email, password });
+export const registerUser = async (email, password, first_name, last_name) => {
+    try {
+        const response = await api.post("users/signup/", {
+            email,
+            password,
+            first_name,
+            last_name
+        });
 
-    console.log('registerUser response data', response.data);
+        console.log('registerUser response data', response.data);
 
-    if (response.status === 201) {
-        const { user, token } = response.data;
-        // Save auth token in browser localStorage
-        localStorage.setItem("token", token);
-        // Set my axios api instance to use the auth token on all requests
-        // Adds to Request Headers: 
-        // Authorization Token XYZ123
-        api.defaults.headers.common["Authorization"] = `Token ${token}`
-        console.log('success', user)
-        return user;
+        if (response.status === 201) {
+            const { user, token } = response.data;
+            localStorage.setItem("token", token);
+            api.defaults.headers.common["Authorization"] = `Token ${token}`;
+            return user;
+        }
+
+        return null;
+    } catch (error) {
+        console.error("Signup failed:", error.response?.data || error.message);
+        throw error;
     }
-
-    return null;
 }
 
 export const loginUser = async (email, password) => {
     const response = await api.post("users/login/", { email, password});
+    // console.log(response)
     if (response.status === 200) {
         const { user, token} = response.data;
         localStorage.setItem("token", token);
         api.defaults.headers.common["Authorization"] = `Token ${token}`
+        console.log(user)
         return user;
     }
 
@@ -60,7 +68,8 @@ export const userConfirmation = async() => {
         console.log('got token ', token)
         api.defaults.headers.common["Authorization"] = `Token ${token}`
         // get basic user info and the default user data we want to display
-        const response = await api.get("users/")
+        const response = await api.get("users/info/")
+        console.log(response)
         if (response.status === 200) {
             console.log('made api call', response.data.user)
             return response.data.user;
