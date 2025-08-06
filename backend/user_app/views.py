@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth import login, logout, authenticate
+from django.core.exceptions import ValidationError
 from .serializers import ClientSerializer
 from rest_framework.authtoken.models import Token
 from rest_framework.views import APIView
@@ -53,11 +54,23 @@ class Log_out(APIView):
         logout(request)
         return Response({"success": True}, status=s.HTTP_204_NO_CONTENT)
 
-# Handles grabbing the information of the currently signed in user
+# Handles grabbing the information of the currently signed in user and changing a user's account info
 class Info(APIView):
     def get(self, request):
         serializer = ClientSerializer(request.user)
         return Response({"user": serializer.data})
+    
+    def put(self, request):
+        try:
+            data = request.data.copy()
+            client_serializer = ClientSerializer(request.user, data=data, partial=True)
+            if client_serializer.is_valid():
+                client_serializer.save()
+                return Response(client_serializer.data)
+            else:
+                return Response(client_serializer.errors)
+        except ValidationError as e:
+            return Response(e.message)
     
 class Test_view(APIView):
     permission_classes = [AllowAny]
