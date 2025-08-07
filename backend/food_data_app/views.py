@@ -1,5 +1,7 @@
 from django.shortcuts import get_object_or_404
 from django.db.models import Sum
+import requests
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status as s
@@ -11,8 +13,6 @@ from datetime_app.models import Day, Week
 
 class FoodLogs(APIView):
     def get(self, request):
-        print("USER:", request.user)
-        print("Authenticated:", request.user.is_authenticated)
         foods = FoodLog.objects.filter(user=request.user)
         serialized = FoodLogSerializer(foods, many=True)
         return Response(serialized.data)
@@ -76,3 +76,64 @@ class FoodLogSingle(APIView):
             day.parent_week.save()
 
         return Response(f'{food_name} has been deleted', status=s.HTTP_200_OK)
+
+# Looks up nutritional data from the CalorieNinjas API from a given food name
+class NutritionLookup(APIView):
+    def get(self, request):
+        query = request.query_params.get("query", "").strip()
+        if not query:
+            return Response({"error": "Query parameter 'query' is required."}, status=s.HTTP_400_BAD_REQUEST)
+
+        try:
+            # 1) Search for foods
+            search_url = "https://api.nal.usda.gov/fdc/v1/foods/search"
+            params = {
+                "api_key": settings.FDC_API_KEY,
+                "query": query,
+                "pageSize": 1
+            }
+            # Searches the API with the above terms and times out after 10 seconds
+            seach_result = requests.get(search_url, params=params, timeout=10)
+            if seach_result.status_code != 200:
+                return Response({"error": "USDA search failed."}, status=s.HTTP_502_BAD_GATEWAY)
+
+            data = seach_result.json()
+            # Gets a list of results from the search and makes sure it exists, then pulls the first entry
+            foods = data.get("foods", [])
+            if not foods:
+                return Response({"items": []}, status=s.HTTP_200_OK)
+
+            food = foods[0]
+
+            # Grabs a description if available, and uses the name searched for if no description is available
+            description = food.get("description") or query
+            nutrients = food.get("foodNutrients", []) or []
+
+            # Extract nutrients by nutrientNumber
+            def get_nutrient(num):
+                for n in nutrients:
+                    if str(n.get("nutrientNumber")) == str(num):
+                        return n.get("value")
+                return 0
+
+            # These Codes are what the given foods are referenced to when the USDA returns data
+            calories = get_nutrient("1008")
+            protein = get_nutrient("1003")
+            carbs   = get_nutrient("1005")
+            fat     = get_nutrient("1004")
+
+            # Return the data in the format  expected by the front end
+            normalized = {
+                "name": description,
+                "calories": round(float(calories or 0)),
+                "protein_g": round(float(protein or 0)),
+                "carbohydrates_total_g": round(float(carbs or 0)),
+                "fat_total_g": round(float(fat or 0)),
+            }
+
+            return Response({"item": normalized}, status=s.HTTP_200_OK)
+
+        except requests.RequestException:
+            return Response({"error": "Failed to reach USDA API."}, status=s.HTTP_502_BAD_GATEWAY)
+        except Exception:
+            return Response({"error": "Unexpected error."}, status=s.HTTP_500_INTERNAL_SERVER_ERROR)

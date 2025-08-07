@@ -5,6 +5,7 @@ import LogIn from './pages/LogIn'
 import SignUp from './pages/SignUp'
 import ErrorPage from './pages/ErrorPage'
 import { userConfirmation } from './api'
+import FoodLogPage from './pages/FoodLogPage'
 
 const router = createBrowserRouter([
     {
@@ -25,6 +26,10 @@ const router = createBrowserRouter([
             {
                 path:"/login/",
                 element: <LogIn/>
+            },
+            {
+                path:"/foodlog/",
+                element: <FoodLogPage/>
             }
         ]
     }
