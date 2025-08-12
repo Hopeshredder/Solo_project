@@ -80,23 +80,20 @@ export const userConfirmation = async() => {
     return null;
 }
 
+// Gives an image from Unsplash without saving to a DB for the preview
+export const previewFoodImages = async (query) => {
+  const res = await api.get("images/search/", { params: { q: query } });
+  return res.data.images; // [{ id, alt, thumb, full, credit }, ...]
+};
 
 
+// Add an image to an existing food log (returns { foodlog, credit })
+export const setFoodLogImage = async (foodLogId, query) => {
+  const res = await api.patch(`images/foodlogs/${foodLogId}/set/`, { q: query });
+  return res.data; // { foodlog: {...}, credit: {...} }
+};
 
-
-
-
-
-
-
-
-
-
-
-
-/** Pokemon API */
-
-// axios api instance for interacting with pokemon api
-export const pokeApi = axios.create({
-    baseURL: "https://pokeapi.co/api/v2/",
-})
+export const createFoodLog = async (payload) => {
+    const res = await api.post('/foods/', payload);              
+    return res.data;
+};

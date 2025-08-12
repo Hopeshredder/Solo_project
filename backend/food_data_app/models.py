@@ -13,7 +13,7 @@ class FoodLog(models.Model):
     protein = models.PositiveIntegerField()
     carbs = models.PositiveIntegerField()
     fat = models.PositiveIntegerField()
-    image_url = models.URLField(blank=True)
+    image_url = models.URLField(max_length=2048, blank=True, null=True)
     time_logged = models.DateTimeField(auto_now_add=True)
     parent_day = models.ForeignKey(Day, on_delete=models.CASCADE, related_name='logs')
 
@@ -38,14 +38,14 @@ class FoodLog(models.Model):
         ).aggregate(total=models.Sum('calories'))['total'] or 0
         self.parent_day.parent_week.save()
 
-        def recalculate_totals(self):
-            day = self.parent_day
-            week = day.parent_week
+    def recalculate_totals(self):
+        day = self.parent_day
+        week = day.parent_week
 
-            day.daily_calorie_total = day.logs.aggregate(total=models.Sum('calories'))['total'] or 0
-            day.save()
+        day.daily_calorie_total = day.logs.aggregate(total=models.Sum('calories'))['total'] or 0
+        day.save()
 
-            week.weekly_calorie_total = FoodLog.objects.filter(
-                parent_day__parent_week=week
-            ).aggregate(total=models.Sum('calories'))['total'] or 0
-            week.save()
+        week.weekly_calorie_total = FoodLog.objects.filter(
+            parent_day__parent_week=week
+        ).aggregate(total=models.Sum('calories'))['total'] or 0
+        week.save()

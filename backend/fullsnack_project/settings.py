@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'user_app',
     'food_data_app',
     'datetime_app',
+    'image_app',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
@@ -145,3 +146,4 @@ AUTH_USER_MODEL = 'user_app.Client'
 load_dotenv()
 FDC_API_KEY = os.getenv("FDC_API_KEY")
 UNSPLASH_API_KEY = os.getenv("UNSPLASH_API_KEY")
+UNSPLASH_SECRET_KEY = os.getenv("UNSPLASH_SECRET_KEY")

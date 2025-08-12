@@ -1,128 +1,166 @@
-from django.shortcuts import get_object_or_404
-from django.db.models import Sum
+# backend/food_data_app/views.py
+from datetime import date
 import requests
+
 from django.conf import settings
+from django.shortcuts import get_object_or_404
+from django.utils import timezone
+
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 from rest_framework import status as s
+
 from .models import FoodLog
 from .serializers import FoodLogSerializer
-from datetime import date, timedelta
-from datetime_app.models import Day, Week
 
+
+# ---------------------------------------------------------------------
+# /api/v1/foods/           -> list/create (optionally filter by ?day=YYYY-MM-DD)
+# /api/v1/foods/<pk>/      -> retrieve/update/delete (scoped to request.user)
+# /api/v1/foods/nutrition/ -> USDA proxy: ?query=food name  (returns {"item": {...}})
+# ---------------------------------------------------------------------
 
 class FoodLogs(APIView):
+    # List current user's food logs (optionally filter by day) or create a new one.
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-        foods = FoodLog.objects.filter(user=request.user)
-        serialized = FoodLogSerializer(foods, many=True)
-        return Response(serialized.data)
-    
+        # Keeps track of what day it is (default today if not provided)
+        day_str = request.query_params.get("day")
+        if day_str:
+            # Expecting YYYY-MM-DD; if invalid, just ignore and fall back to today
+            try:
+                target = date.fromisoformat(day_str)
+            except ValueError:
+                target = timezone.now().date()
+        else:
+            target = timezone.now().date()
+
+        # Filter by user and the Day’s date (FoodLog has FK parent_day -> Day(date))
+        logs = FoodLog.objects.filter(user=request.user, parent_day__date=target).order_by("-time_logged")
+        serialized = FoodLogSerializer(logs, many=True)
+        return Response(serialized.data, status=s.HTTP_200_OK)
+
     def post(self, request):
-        data = request.data.copy()
+        # Note: FoodLog.save() sets parent_day (Day/Week) and updates totals
+        ser = FoodLogSerializer(data=request.data)
+        if ser.is_valid():
+            food = ser.save(user=request.user)
+            return Response(FoodLogSerializer(food).data, status=s.HTTP_201_CREATED)
+        return Response(ser.errors, status=s.HTTP_400_BAD_REQUEST)
 
-        # Getting or creating a week object to then get or create a day object for the food log to exist within
-        today=date.today()
-        # Subtracts the current date by the number of days in the week have past to get the Monday of the current week
-        week_start = today - timedelta(days=today.weekday())
-        # Sees if a week exists based off this weeks Monday and makes one if not
-        week, _ = Week.objects.get_or_create(start_date=week_start)
-        # Sees if a day exists and assigns it to the current week if said date DNE
-        day, _ = Day.objects.get_or_create(date=today, defaults={'parent_week':week})
-        # Assigns the gotten or created day as the associated Day object for the current FoodLog entry
-        data['parent_day'] = day.id
-
-        serialized = FoodLogSerializer(data=data)
-        if(serialized.is_valid()):
-            serialized.save(user=request.user)
-            return Response(serialized.data, status=s.HTTP_201_CREATED)
-        return Response(serialized.errors, status=s.HTTP_400_BAD_REQUEST)
 
 class FoodLogSingle(APIView):
+    # Retrieve, update, or delete a single FoodLog owned by the current user.
 
-    def get_food(self, request, pk):
+    def _get(self, request, pk):
         return get_object_or_404(FoodLog, pk=pk, user=request.user)
 
     def get(self, request, pk):
-        food = self.get_food(request, pk)
-        serialized = FoodLogSerializer(food)
-        return Response(serialized.data)
+        food = self._get(request, pk)
+        return Response(FoodLogSerializer(food).data, status=s.HTTP_200_OK)
 
     def put(self, request, pk):
-        food = self.get_food(request, pk)
-        serialized = FoodLogSerializer(food, data=request.data, partial=True)
-        if serialized.is_valid():
-            serialized.save()
-            return Response(serialized.data, status=s.HTTP_200_OK)
-        else:
-            return Response(serialized.errors, status=s.HTTP_400_BAD_REQUEST)
-        
+        food = self._get(request, pk)
+        ser = FoodLogSerializer(food, data=request.data)
+        if ser.is_valid():
+            updated = ser.save()  # model.save() will recalc day/week totals
+            return Response(FoodLogSerializer(updated).data, status=s.HTTP_200_OK)
+        return Response(ser.errors, status=s.HTTP_400_BAD_REQUEST)
+
     def delete(self, request, pk):
-        food=self.get_food(request, pk)
-        # Saves some data from food before deleting
-        day = food.parent_day
-        food_name = food.food_name
+        food = self._get(request, pk)
+        # keep references if you plan to manually recalc after delete;
+        # your model handles recalc on save, but delete doesn’t call save.
+        # If you rely on totals, you can recalc via a helper here.
         food.delete()
+        return Response({"detail": "Deleted."}, status=s.HTTP_204_NO_CONTENT)
 
-        # Checks to see if there are any FoodLogs left for the given week
-        remaining_log = FoodLog.objects.filter(parent_day=day).first()
-        # If so, recalculate the Daily and Weekly totals
-        if remaining_log:
-            remaining_log.recalculate_totals()
-        # Otherwise, set the totals to 0
-        else:
-            day.daily_calorie_total = 0
-            day.save()
-            day.parent_week.weekly_calorie_total = 0
-            day.parent_week.save()
 
-        return Response(f'{food_name} has been deleted', status=s.HTTP_200_OK)
-
-# Looks up nutritional data from the CalorieNinjas API from a given food name
+# Looks up nutritional data from the FDC API from a given food name
 class NutritionLookup(APIView):
+    permission_classes = [IsAuthenticated]
+
     def get(self, request):
-        query = request.query_params.get("query", "").strip()
+        # Gets query if exists
+        query = (request.query_params.get("query") or "").strip()
         if not query:
             return Response({"error": "Query parameter 'query' is required."}, status=s.HTTP_400_BAD_REQUEST)
 
         try:
-            # 1) Search for foods
             search_url = "https://api.nal.usda.gov/fdc/v1/foods/search"
+            # Ask for multiple results and prioritize datasets that usually have full nutrients
             params = {
                 "api_key": settings.FDC_API_KEY,
                 "query": query,
-                "pageSize": 1
+                "pageSize": 5,
+                "dataType": ["Survey (FNDDS)", "SR Legacy", "Branded"],
             }
-            # Searches the API with the above terms and times out after 10 seconds
-            seach_result = requests.get(search_url, params=params, timeout=10)
-            if seach_result.status_code != 200:
+            r = requests.get(search_url, params=params, timeout=10)
+            if r.status_code != 200:
                 return Response({"error": "USDA search failed."}, status=s.HTTP_502_BAD_GATEWAY)
 
-            data = seach_result.json()
-            # Gets a list of results from the search and makes sure it exists, then pulls the first entry
-            foods = data.get("foods", [])
+            payload = r.json() or {}
+            foods = payload.get("foods") or []
             if not foods:
                 return Response({"items": []}, status=s.HTTP_200_OK)
 
-            food = foods[0]
+            def extract_macros(food):
+                # Return (desc, calories, protein_g, carbs_g, fat_g) from either foodNutrients or labelNutrients.
 
-            # Grabs a description if available, and uses the name searched for if no description is available
-            description = food.get("description") or query
-            nutrients = food.get("foodNutrients", []) or []
+                # First try foodNutrients (array of dicts)
+                fn = food.get("foodNutrients") or []
+                
 
-            # Extract nutrients by nutrientNumber
-            def get_nutrient(num):
-                for n in nutrients:
-                    if str(n.get("nutrientNumber")) == str(num):
-                        return n.get("value")
-                return 0
+                def get_val(id_code=None, number_code=None):
+                    for n in fn:
+                        nid = n.get("nutrientId")
+                        nnum = n.get("nutrientNumber")
+                        if (id_code is not None and str(nid) == str(id_code)) or (
+                            number_code is not None and str(nnum) == str(number_code)
+                        ):
+                            return n.get("value")
+                    return None
 
-            # These Codes are what the given foods are referenced to when the USDA returns data
-            calories = get_nutrient("1008")
-            protein = get_nutrient("1003")
-            carbs   = get_nutrient("1005")
-            fat     = get_nutrient("1004")
+                # Prefer nutrientId, but accept nutrientNumber
+                calories = get_val(id_code=1008, number_code="208")  # Energy (kcal)
+                protein  = get_val(id_code=1003, number_code="203")  # Protein (g)
+                carbs    = get_val(id_code=1005, number_code="205")  # Carbs (g)
+                fat      = get_val(id_code=1004, number_code="204")  # Fat (g)
+                
+                description = query.title()
 
-            # Return the data in the format  expected by the front end
+                # Fallback: branded items often have labelNutrients
+                if any(v in (None, 0) for v in [calories, protein, carbs, fat]):
+                    ln = food.get("labelNutrients") or {}
+
+                    def lv(key):
+                        v = (ln.get(key) or {}).get("value")
+                        return v if v is not None else None
+
+                    calories = calories if calories not in (None, 0) else lv("calories")
+                    protein  = protein  if protein  not in (None, 0) else lv("protein")
+                    carbs    = carbs    if carbs    not in (None, 0) else lv("totalCarbohydrate")
+                    fat      = fat      if fat      not in (None, 0) else lv("totalFat")
+
+                return description, calories, protein, carbs, fat
+
+            # Pick the first candidate with at least some macros present
+            chosen = None
+            for f in foods:
+                desc, cal, pro, cho, fat = extract_macros(f)
+                if any(v not in (None, 0) for v in [cal, pro, cho, fat]):
+                    chosen = (desc, cal, pro, cho, fat)
+                    break
+
+            # If all were empty, just use the first (still renders zeros)
+            if chosen is None:
+                chosen = extract_macros(foods[0])
+
+            description, calories, protein, carbs, fat = chosen
+
+            # Return the data in the format expected by the front end
             normalized = {
                 "name": description,
                 "calories": round(float(calories or 0)),
@@ -130,7 +168,6 @@ class NutritionLookup(APIView):
                 "carbohydrates_total_g": round(float(carbs or 0)),
                 "fat_total_g": round(float(fat or 0)),
             }
-
             return Response({"item": normalized}, status=s.HTTP_200_OK)
 
         except requests.RequestException:

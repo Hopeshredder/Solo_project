@@ -4,7 +4,16 @@ from .models import FoodLog
 class FoodLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = FoodLog
-        fields = '__all__'
-        extra_kwargs = {
-            'user': {'required': False}
-        }
+        fields = [
+            "id",
+            "food_name",
+            "calories",
+            "protein",
+            "carbs",
+            "fat",
+            "image_url",
+            "time_logged",
+            "parent_day",
+            "user",
+        ]
+        read_only_fields = ["id", "image_url", "time_logged", "parent_day", "user"]

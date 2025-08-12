@@ -22,4 +22,5 @@ urlpatterns = [
     path("api/v1/users/", include("user_app.urls")),
     path("api/v1/foods/", include("food_data_app.urls")),
     path("api/v1/dates/", include("datetime_app.urls")),
+    path("api/v1/images/", include("image_app.urls")),
 ]
