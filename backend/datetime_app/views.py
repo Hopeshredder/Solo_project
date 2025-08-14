@@ -11,7 +11,7 @@ from .serializers import DaySerializer, WeekSerializer
 class Weeks(APIView):
     def get(self, request):
         # Filters based off of the user variable of the food logs of the days attached to it
-        weeks = Week.objects.filter(days__logs__user=request.user).order_by('-start_date')[:30]  # limit to past 12 weeks, most to least recent, only returns current user's info
+        weeks = Week.objects.filter(days__logs__user=request.user).distinct().order_by('-start_date')[:30]  # limit to past 12 weeks, most to least recent, only returns current user's info
         serializer = WeekSerializer(weeks, many=True)
         return Response(serializer.data)
 
@@ -30,6 +30,23 @@ class OneWeek(APIView):
 
 class Days(APIView):
     def get(self, request):
+        # Adds what day of week the day is when associating it with the parent week
+        week_start = request.GET.get('week_start')
+        if week_start:
+            try:
+                week_date = datetime.strptime(week_start, "%Y-%m-%d").date()
+            except ValueError:
+                return Response({"error": "Invalid week_start format. Use YYYY-MM-DD."}, status=400)
+
+            # Filter days that belong to the week with this start_date and current user
+            days = Day.objects.filter(
+                parent_week__start_date=week_date,
+                logs__user=request.user
+            ).distinct().order_by('date')
+
+            serializer = DaySerializer(days, many=True)
+            return Response(serializer.data)
+        
         # logs__user is a reverse of the foreign key, it looks through objects that have a foreign key with it and their related name, in this case for the user variable attached to it
         days = Day.objects.filter(logs__user=request.user).distinct().order_by('-date')[:30]  # limit to past 30 days, most to least recent, only returns current user's info
         serializer = DaySerializer(days, many=True)

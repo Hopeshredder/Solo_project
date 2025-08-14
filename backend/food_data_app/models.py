@@ -16,6 +16,10 @@ class FoodLog(models.Model):
     image_url = models.URLField(max_length=2048, blank=True, null=True)
     time_logged = models.DateTimeField(auto_now_add=True)
     parent_day = models.ForeignKey(Day, on_delete=models.CASCADE, related_name='logs')
+    # Used for Unsplash required credits for used image
+    image_credit_name = models.CharField(max_length=120, blank=True)
+    image_credit_profile = models.URLField(blank=True)
+    image_credit_source = models.CharField(max_length=50, blank=True, default="Unsplash")
 
     def save(self, *args, **kwargs):
         if not self.pk:

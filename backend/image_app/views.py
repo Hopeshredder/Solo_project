@@ -104,17 +104,32 @@ class SetFoodLogImage(APIView):
         if not chosen_url:
             return Response({"detail": "No usable image URL returned."}, status=s.HTTP_502_BAD_GATEWAY)
 
-        # Builds credit info for client-side crediting of images
+        # Build credit info for persistent storage (and client display)
+        APP_UTM = "FullSnack"
         user = first.get("user") or {}
-        credit = {
-            "name": user.get("name"),
-            "profile": f'{user.get("links", {}).get("html")}?utm_source={APP_UTM}&utm_medium=referral',
-            "unsplash": f'{first.get("links", {}).get("html")}?utm_source={APP_UTM}&utm_medium=referral',
-        }
+        photo_links = first.get("links", {}) or {}
+        user_links = (user.get("links") or {})
 
-        # Update the FoodLog
+        credit_name = (user.get("name") or "").strip()
+        credit_profile = f'{user_links.get("html")}?utm_source={APP_UTM}&utm_medium=referral' if user_links.get("html") else ""
+        credit_photo = f'{photo_links.get("html")}?utm_source={APP_UTM}&utm_medium=referral' if photo_links.get("html") else ""
+        credit_source = "Unsplash"
+
+        # Update and persist on the FoodLog
         foodlog.image_url = chosen_url
+        foodlog.image_credit_name = credit_name[:120]
+        foodlog.image_credit_profile = credit_profile
+        foodlog.image_credit_photo = credit_photo
+        foodlog.image_credit_source = credit_source
         foodlog.save()
+
+        # For backward compatibility, still return a compact 'credit' object
+        credit = {
+            "name": credit_name or None,
+            "profile": credit_profile or None,
+            "photo": credit_photo or None,
+            "source": credit_source,
+        }
 
         return Response(
             {

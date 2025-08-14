@@ -9,7 +9,7 @@ const PreviewCard = ({ data }) => {
   const photoLink = credit?.unsplash || null;
 
   return (
-    <Card className="max-w-sm mx-auto">
+    <Card className="w-full max-w-[22rem] mx-auto mt-4 shadow-lg rounded-2xl border border-gray-200">
       {image_url && (
         photoLink ? (
           <a href={photoLink} target="_blank" rel="noopener noreferrer">

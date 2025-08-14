@@ -15,5 +15,9 @@ class FoodLogSerializer(serializers.ModelSerializer):
             "time_logged",
             "parent_day",
             "user",
+            'image_credit_name', 
+            'image_credit_profile', 
+            'image_credit_source',
+            'time_logged'
         ]
         read_only_fields = ["id", "image_url", "time_logged", "parent_day", "user"]

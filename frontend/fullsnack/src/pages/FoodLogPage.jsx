@@ -111,6 +111,9 @@ const FoodLogPage = () => {
             setPreviewData(null);
             setQuery("");
             fetchLogs();
+
+            // Updates the other pages with the new log
+            window.dispatchEvent(new CustomEvent('foodlog:updated'));
         } catch (err) {
             console.error("Failed to add food log", err);
         } finally {
@@ -123,14 +126,17 @@ const FoodLogPage = () => {
         try {
             await api.delete(`/foods/${id}/`);
             setFoodLogs((prev) => prev.filter((f) => f.id !== id));
+
+            // Updates other pages that a log has been deleted
+            window.dispatchEvent(new CustomEvent('foodlog:updated'));
         } catch (e) {
             console.error('Failed to delete log', e);
         }
     };
 
     return (
-        <div className="p-4 max-w-xl mx-auto">
-            <h1 className="text-2xl font-bold mb-4">Food Log</h1>
+        <div className="px-4 py-6 max-w-7xl mx-auto">
+            <h1 className="text-2xl font-bold mb-4 text-center">Food Log</h1>
             {/* Form for searching the API for a food */}
             <Form onSubmit={searchNutrition} className="mb-4">
                 <Form.Group className="flex gap-2">
@@ -149,7 +155,9 @@ const FoodLogPage = () => {
             {/* Displays a card with info of a food searched and allows user to confirm for it to be added to the log for today */}
             {previewData && (
                 <>
-                    <PreviewCard data={previewData} />
+                    <div className="mx-auto w-full max-w-[20rem]">   
+                        <PreviewCard data={previewData} />
+                    </div>
                     <div className="text-center mt-2">
                         <Button onClick={addToLog} disabled={adding}>
                             {adding ? <Spinner animation="border" size="sm" /> : "Add to Log"}
@@ -159,18 +167,19 @@ const FoodLogPage = () => {
             )}
 
             {/* Displays all the foods currently in the log for the given day, shows spinner while loading and a message */}
-            <h2 className="text-xl font-semibold mt-6 mb-2">Today's Entries</h2>
+            <h2 className="text-xl font-semibold mt-6 mb-2 text-center">Today's Entries</h2>
             {loading && foodLogs.length === 0 ? (
-                <div className="flex items-center gap-2 text-gray-600"><Spinner animation="border" size="sm" /> Loading...</div>
+                <div className="flex items-center gap-2 text-gray-600">
+                    <Spinner animation="border" size="sm" /> Loading...
+                </div>
             ) : (
-                <ul className="space-y-2">
+                // AFTER: tighter grid; more columns fit; items centered; consistent max width per cell
+                <ul className="grid [grid-template-columns:repeat(auto-fill,minmax(18rem,1fr))] gap-4 justify-items-center">   {/* CHANGED */}
                     {foodLogs.map((log) => (
-                        <li key={log.id}>
-                            {/* pass credit down so FoodLogCard can show attribution */}
+                        <li key={log.id} className="w-full max-w-[20rem]">   {/* CHANGED */}
                             <FoodLogCard log={log} onDelete={deleteLog} credit={creditsById[log.id]} />
                         </li>
                     ))}
-                    {/* Shows message if no logs are found in the DB */}
                     {foodLogs.length === 0 && (
                         <li className="text-gray-500">No entries yet. Search above to add your first log.</li>
                     )}
