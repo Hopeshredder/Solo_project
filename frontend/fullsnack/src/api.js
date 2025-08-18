@@ -97,3 +97,11 @@ export const createFoodLog = async (payload) => {
     const res = await api.post('/foods/', payload);              
     return res.data;
 };
+
+// Gets a total calorie number for the given day
+export const getDailyCalories = async (dateStr) => {
+    // Grabs a day object based off of a given day (YYYY-MM-DD format)
+    const res = await api.get(`dates/days/`, { params: { date: dateStr } });
+    // returns the total calories of the given day
+    return res.data?.total_calories ?? 0;
+};

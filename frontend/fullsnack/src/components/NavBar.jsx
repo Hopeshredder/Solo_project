@@ -40,6 +40,9 @@ function NavBar({ user, setUser }) {
                         )}
                         {user && (
                             <>
+                                <Nav.Link as={Link} to="">
+                                    Home
+                                </Nav.Link>
                                 <Nav.Link as={Link} to="/foodlog/">
                                     Food Log
                                 </Nav.Link>
