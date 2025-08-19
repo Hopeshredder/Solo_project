@@ -90,18 +90,64 @@ export const previewFoodImages = async (query) => {
 // Add an image to an existing food log (returns { foodlog, credit })
 export const setFoodLogImage = async (foodLogId, query) => {
   const res = await api.patch(`images/foodlogs/${foodLogId}/set/`, { q: query });
-  return res.data; // { foodlog: {...}, credit: {...} }
+  foodLogChanged();
+  return res.data;
 };
 
+// Creates a new food log with the given info
 export const createFoodLog = async (payload) => {
-    const res = await api.post('/foods/', payload);              
+    const res = await api.post('/foods/', payload);     
+    foodLogChanged();         
     return res.data;
+};
+
+// Updates a page that has food aggregate info with new info when called
+const foodLogChanged = () => {
+    if (typeof window !== "undefined") {
+        window.dispatchEvent(new Event("foodlog:changed"));
+    }
 };
 
 // Gets a total calorie number for the given day
 export const getDailyCalories = async (dateStr) => {
-    // Grabs a day object based off of a given day (YYYY-MM-DD format)
-    const res = await api.get(`dates/days/`, { params: { date: dateStr } });
-    // returns the total calories of the given day
-    return res.data?.total_calories ?? 0;
+  const res = await api.get("dates/days/");
+  const list = Array.isArray(res.data) ? res.data : (res.data?.results ?? []);
+
+  // Try exact match first
+  let entry = list.find((d) => d.date === dateStr);
+
+  // If not found, try to tolerate local/UTC mismatches by comparing against local "today"
+  if (!entry) {
+    const d = new Date();
+    const localYMD = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    entry = list.find((x) => x.date === localYMD);
+  }
+
+  return entry?.daily_calorie_total ?? 0;
+};
+
+// Grabs foodlog by ID
+export const getFoodLog = async (id) => {
+    const res = await api.get(`foods/${id}/`);
+    return res.data;
+};
+
+// Rewrites data of a foodlog of a given id
+export const putFoodLog = async (id, payload) => {
+    const res = await api.put(`foods/${id}/`, payload);
+    foodLogChanged();
+    return res.data;
+};
+
+// Gets info on current user 
+export const getMyInfo = async () => {
+    const res = await api.get("users/info/");
+    // returns the user of the given response data if exists, and the data itself if not
+    return res.data?.user ?? res.data;
+};
+
+// Update current user based on given info and returns the updated user
+export const updateMyInfo = async (payload) => {
+    const res = await api.put("users/info/", payload);
+    return res.data; // updated user
 };

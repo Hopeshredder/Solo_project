@@ -1,56 +1,83 @@
-import { useEffect, useMemo, useState } from "react";
-import { useOutletContext } from "react-router-dom";
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useOutletContext, useLocation } from "react-router-dom";
 import Card from "react-bootstrap/Card";
 import Spinner from "react-bootstrap/Spinner";
 import Alert from "react-bootstrap/Alert";
 import { getDailyCalories } from "../api";
 
-// Grabs current date and returns YYYY-MM-DD in local time IOT fetch the current day from the backend
-const formatYMD = (d) => {
-    const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, "0");
-    const day = String(d.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-};
+// Grabs current date and returns YYYY-MM-DD in *UTC* to match FoodLogPage IOT fetch the current day from the backend
+const isoYMD = () => new Date().toISOString().split("T")[0];
 
 const HomePage = () => {
     const { user } = useOutletContext();
+    const location = useLocation(); // used to refetch when the user navigates back to Home
+
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [dailyTotal, setDailyTotal] = useState(null);
 
-    const today = useMemo(() => formatYMD(new Date()), []);
+    // Compute "today" once per mount to match FoodLogPage
+    const today = useMemo(() => isoYMD(), []);
 
-    useEffect(() => {
-        // isMounted helps make sure the user is still on the page and if they aren't, then dont update the page
-        let isMounted = true;
-        const run = async () => {
-            // If no one is logged in, don't worry about the daily total
-            if (!user) {
-                setDailyTotal(null);
-                setError("");
-                return;
-            }
-            // Sets loading effect to activate
-            setLoading(true);
+    // Centralized fetch function so both effects can use it
+    const refetch = useCallback(async () => {
+        // If no one is logged in, don't worry about the daily total
+        if (!user) {
+            setDailyTotal(null);
             setError("");
-            try {
-                // Calls helper function located in Api.js IOT fetch daily calories from Django backend
-                const total = await getDailyCalories(today);
-                // Sets daily total to  what was returned or 0 if nothing has been logged today
-                if (isMounted) setDailyTotal(total ?? 0);
-            } catch (e) {
-                if (isMounted) setError("Could not load today’s calories.");
-            } finally {
-                // Turns off loading effect
-                if (isMounted) setLoading(false);
-            }
-        };
-        run();
-        return () => {
-            isMounted = false;
-        };
+            return;
+        }
+        // Sets loading effect to activate
+        setLoading(true);
+        setError("");
+        try {
+            // Calls helper function located in api.js IOT fetch daily calories from Django backend
+            const total = await getDailyCalories(today);
+            // Sets daily total to what was returned or 0 if nothing has been logged today
+            setDailyTotal(total ?? 0);
+        } catch (e) {
+            setError("Could not load today’s calories.");
+        } finally {
+            // Turns off loading effect
+            setLoading(false);
+        }
     }, [user, today]);
+
+    // Initial load + when coming back to this route
+    useEffect(() => {
+        refetch();
+    }, [refetch, location.key]);
+
+    // Catches changes to the aggregate fired by api.js / FoodLogPage
+    useEffect(() => {
+        let timer = null;
+
+        const runWithRetries = () => {
+            // retry up to 3 times, 250ms apart
+            let tries = 0;
+            const attempt = () => {
+                tries += 1;
+                refetch();
+                if (tries < 3) {
+                    timer = setTimeout(attempt, 250);
+                }
+            };
+            attempt();
+        };
+
+        const onChanged = () => {
+            console.log('[HomePage] received foodlog:changed');
+            // small debounce before starting retries
+            clearTimeout(timer);
+            timer = setTimeout(runWithRetries, 120);
+        };
+
+        window.addEventListener('foodlog:changed', onChanged);
+        return () => {
+            clearTimeout(timer);
+            window.removeEventListener('foodlog:changed', onChanged);
+        };
+    }, [refetch]);
 
     return (
         <>
@@ -67,7 +94,7 @@ const HomePage = () => {
                             className="h-24 w-24 sm:h-32 sm:w-32 rounded-2xl shadow-md mb-3 ring-4 ring-[#2bb673]/20"
                         />
                         <h2 className="text-3xl font-bold text-center">
-                            {/* &rsquo; is a curly apostraphe in HTML speak */}
+                            {/* ’ is a curly apostrophe */}
                             {user.first_name}’s Homepage
                         </h2>
                     </div>
@@ -77,8 +104,8 @@ const HomePage = () => {
                         {loading && (
                             <div className="flex items-center gap-2 mb-3">
                                 <Spinner animation="border" role="status" size="sm" />
-                                {/* &hellip; is an ellipse (...) to be used for loading */}
-                                <span>Loading today’s total&hellip;</span>
+                                {/* … is an ellipsis to be used for loading */}
+                                <span>Loading today’s total…</span>
                             </div>
                         )}
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import { api } from '../utilities';
 import FoodLogCard from '../components/FoodLogCard';
@@ -20,22 +20,30 @@ const DayViewPage = () => {
     });
 
     // Tries to get the logs for a day from the backend
-    useEffect(() => {
-        const fetchLogs = async () => {
-            try {
-                // Grabs food logs based on the date given
-                const res = await api.get('/foods/', { params: { day: date } });
-                setLogs(res.data);
-            } catch (err) {
-                console.error('Failed to fetch logs for day:', err);
-            } finally {
-                // Turns off loading spinner
-                setLoading(false);
-            }
-        };
-
-        fetchLogs();
+    const fetchLogs = useCallback(async () => {
+        try {
+            // Grabs food logs based on the date given
+            const res = await api.get('/foods/', { params: { day: date } });
+            setLogs(res.data);
+        } catch (err) {
+            console.error('Failed to fetch logs for day:', err);
+        } finally {
+            // Turns off loading spinner
+            setLoading(false);
+        }
     }, [date]);
+
+    // Fetch logs on startup
+    useEffect(() => {
+        fetchLogs();
+    }, [fetchLogs]);
+
+    // Refetch today's logs whenever a food log changes anywhere
+    useEffect(() => {
+        const onChanged = () => fetchLogs();
+        window.addEventListener('foodlog:changed', onChanged);
+        return () => window.removeEventListener('foodlog:changed', onChanged);
+    }, [fetchLogs]);
 
     return (
         <div className="px-4 py-6 max-w-7xl mx-auto">

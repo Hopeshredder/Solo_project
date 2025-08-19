@@ -113,7 +113,8 @@ const FoodLogPage = () => {
             fetchLogs();
 
             // Updates the other pages with the new log
-            window.dispatchEvent(new CustomEvent('foodlog:updated'));
+            console.log('[FoodLogPage] emit foodlog:changed');
+            window.dispatchEvent(new Event('foodlog:changed'));
         } catch (err) {
             console.error("Failed to add food log", err);
         } finally {
@@ -128,7 +129,8 @@ const FoodLogPage = () => {
             setFoodLogs((prev) => prev.filter((f) => f.id !== id));
 
             // Updates other pages that a log has been deleted
-            window.dispatchEvent(new CustomEvent('foodlog:updated'));
+            console.log('[FoodLogPage] emit foodlog:changed');
+            window.dispatchEvent(new Event('foodlog:changed'));
         } catch (e) {
             console.error('Failed to delete log', e);
         }

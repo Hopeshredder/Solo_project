@@ -7,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny
+from rest_framework.exceptions import ValidationError as DRFValidationError
 from rest_framework import status as s
 
 # Handles the Sign-up feature
@@ -57,20 +58,17 @@ class Log_out(APIView):
 # Handles grabbing the information of the currently signed in user and changing a user's account info
 class Info(APIView):
     def get(self, request):
-        serializer = ClientSerializer(request.user)
-        return Response({"user": serializer.data})
-    
+        ser = ClientSerializer(request.user)
+        return Response({"user": ser.data}, status=s.HTTP_200_OK)
+
     def put(self, request):
+        ser = ClientSerializer(request.user, data=request.data, partial=True)
         try:
-            data = request.data.copy()
-            client_serializer = ClientSerializer(request.user, data=data, partial=True)
-            if client_serializer.is_valid():
-                client_serializer.save()
-                return Response(client_serializer.data)
-            else:
-                return Response(client_serializer.errors)
-        except ValidationError as e:
-            return Response(e.message)
+            ser.is_valid(raise_exception=True)
+            ser.save()
+            return Response(ser.data, status=s.HTTP_200_OK)
+        except DRFValidationError as e:
+            return Response(e.detail, status=s.HTTP_400_BAD_REQUEST)
     
 class Test_view(APIView):
     permission_classes = [AllowAny]

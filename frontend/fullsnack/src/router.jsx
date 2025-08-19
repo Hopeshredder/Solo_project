@@ -8,6 +8,7 @@ import { userConfirmation } from './api';
 import FoodLogPage from './pages/FoodLogPage';
 import DashboardPage from './pages/DashboardPage';
 import DayViewPage from './pages/DayViewPage';
+import ProfilePage from './pages/ProfilePage';
 import ProtectedRoute from './routes/ProtectedRoute';
 
 const router = createBrowserRouter([
@@ -52,6 +53,14 @@ const router = createBrowserRouter([
                 element: (
                     <ProtectedRoute>
                         <DayViewPage />
+                    </ProtectedRoute>
+                )
+            },
+            {
+                path: '/profile/',
+                element: (
+                    <ProtectedRoute>
+                        <ProfilePage />
                     </ProtectedRoute>
                 )
             },
