@@ -137,53 +137,65 @@ const FoodLogPage = () => {
     };
 
     return (
-        <div className="px-4 py-6 max-w-7xl mx-auto">
-            <h1 className="text-2xl font-bold mb-4 text-center">Food Log</h1>
+        <div className="px-4 py-8 max-w-6xl mx-auto">
+            <h1 className="text-3xl snack-heading mb-2 text-center">Food Log</h1>
+
             {/* Form for searching the API for a food */}
             <Form onSubmit={searchNutrition} className="mb-4">
-                <Form.Group className="flex gap-2">
+                <Form.Group className="flex gap-2 max-w-xl mx-auto">
                     <Form.Control
                         type="text"
                         value={query}
                         onChange={(e) => setQuery(e.target.value)}
-                        placeholder="Search food..."
+                        placeholder="Search food…"
                     />
-                    <Button type="submit" disabled={loading}>
+                    <Button type="submit" variant="primary" disabled={loading} className="rounded-pill">
                         {loading ? <Spinner animation="border" size="sm" /> : "Search"}
                     </Button>
                 </Form.Group>
             </Form>
 
+            <hr className="snack-divider" />
+
             {/* Displays a card with info of a food searched and allows user to confirm for it to be added to the log for today */}
             {previewData && (
                 <>
-                    <div className="mx-auto w-full max-w-[20rem]">   
+                    <div className="mx-auto w-full max-w-[20rem]">
                         <PreviewCard data={previewData} />
                     </div>
-                    <div className="text-center mt-2">
-                        <Button onClick={addToLog} disabled={adding}>
+                    <div className="text-center mt-3">
+                        <Button onClick={addToLog} disabled={adding} variant="primary" className="rounded-pill">
                             {adding ? <Spinner animation="border" size="sm" /> : "Add to Log"}
                         </Button>
+                    </div>
+
+                    {/* Divider between preview card and today's entries */}
+                    <div className="my-10">
+                        <hr className="snack-divider" role="separator" />
                     </div>
                 </>
             )}
 
             {/* Displays all the foods currently in the log for the given day, shows spinner while loading and a message */}
-            <h2 className="text-xl font-semibold mt-6 mb-2 text-center">Today's Entries</h2>
+            <h2 className={`text-xl snack-heading ${previewData ? 'mt-0' : 'mt-6'} mb-3 text-center`}>Today's Entries</h2>
             {loading && foodLogs.length === 0 ? (
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center justify-center gap-2 text-snack-700">
                     <Spinner animation="border" size="sm" /> Loading...
                 </div>
             ) : (
-                // AFTER: tighter grid; more columns fit; items centered; consistent max width per cell
-                <ul className="grid [grid-template-columns:repeat(auto-fill,minmax(18rem,1fr))] gap-4 justify-items-center">   {/* CHANGED */}
+                // Displays current days food logs or message if there are none
+                <ul className="grid [grid-template-columns:repeat(auto-fill,minmax(18rem,1fr))] gap-5 justify-items-center">
                     {foodLogs.map((log) => (
-                        <li key={log.id} className="w-full max-w-[20rem]">   {/* CHANGED */}
+                        <li key={log.id} className="w-full max-w-[20rem]">
                             <FoodLogCard log={log} onDelete={deleteLog} credit={creditsById[log.id]} />
                         </li>
                     ))}
                     {foodLogs.length === 0 && (
-                        <li className="text-gray-500">No entries yet. Search above to add your first log.</li>
+                        <li className="col-span-full justify-self-center">
+                            <div className="mx-auto w-full max-w-md bg-white snack-card rounded-2xl border border-snack-100 shadow-snack p-6 text-center text-snack-700">
+                                No entries yet. Search above to add your first log.
+                            </div>
+                        </li>
                     )}
                 </ul>
             )}

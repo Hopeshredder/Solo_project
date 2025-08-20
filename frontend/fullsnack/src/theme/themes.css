@@ -1,0 +1,94 @@
+/* ---------- FullSnack Color Scheme and default CSS ---------- */
+:root{
+  /* Color Scheme */
+  --snack-primary: #2BB673;             /* mint */
+  --snack-primary-rgb: 43, 182, 115;
+  --snack-primary-700: #228E5A;
+  --snack-cream: #FFF8EB;               /* pancake cream */
+  --snack-syrup: #8B5E3C;               /* syrup brown */
+  --snack-bg: #F4FBF7;                  /* soft mint background */
+  --snack-muted: #6B7280;               /* slate for secondary text */
+
+  /* Shadows */
+  --snack-shadow: 0 8px 24px rgba(43, 182, 115, 0.16);
+  --snack-shadow-lg: 0 14px 40px rgba(43, 182, 115, 0.18);
+}
+
+/* ---- Bootstrap 5.3 theme tokens ---- */
+:root{
+  --bs-primary: var(--snack-primary);
+  --bs-primary-rgb: var(--snack-primary-rgb);
+  --bs-link-color: var(--snack-primary);
+  --bs-link-hover-color: color-mix(in srgb, var(--snack-primary) 85%, black);
+  --bs-focus-ring-color: rgba(var(--snack-primary-rgb), .35);
+
+  /* Softer rounding across the app */
+  --bs-border-radius: 1rem;
+  --bs-border-radius-sm: .875rem;
+  --bs-border-radius-lg: 1.25rem;
+  --bs-btn-border-radius: 9999px; /* pill buttons look great with mint */
+  --bs-card-border-radius: 1.25rem;
+}
+
+/* Uniform base color on the page */
+html, body, #root {
+    min-height: 100%;
+    background: var(--snack-bg);
+}
+
+/* Paint the mint gradients once, fixed behind content */
+body::before{
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: -1;
+    background:
+        radial-gradient(1400px 700px at 10% -10%, #EAF9F1 0%, transparent 72%),
+        radial-gradient(1200px 600px at 110% 10%, #EAF9F1 0%, transparent 68%);
+}
+
+/* If there is a page shell/wrapper, inherit the background */
+.app-shell,
+main {
+    background: transparent;
+}
+
+/* Re-usable card & section styles */
+.snack-card{
+  border: 1px solid rgba(var(--snack-primary-rgb), .08) !important;
+  box-shadow: var(--snack-shadow);
+}
+
+.snack-card:hover{ box-shadow: var(--snack-shadow-lg); }
+
+.snack-title{
+  color: var(--snack-primary);
+  letter-spacing: .2px;
+}
+
+.snack-divider{
+  border: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    rgba(var(--snack-primary-rgb), .0),
+    rgba(var(--snack-primary-rgb), .25),
+    rgba(var(--snack-primary-rgb), .0)
+  );
+  margin: 2rem 0;
+}
+
+/* Focus visibility (keyboard a11y) */
+:focus-visible{
+  outline: 3px solid rgba(var(--snack-primary-rgb), .35);
+  outline-offset: 2px;
+}
+
+/* “glass” surface for hero blocks */
+.snack-glass{
+  background: color-mix(in srgb, white 72%, var(--snack-cream));
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(var(--snack-primary-rgb), .08);
+  box-shadow: var(--snack-shadow);
+  border-radius: 1.25rem;
+}

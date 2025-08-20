@@ -45,20 +45,43 @@ const DayViewPage = () => {
         return () => window.removeEventListener('foodlog:changed', onChanged);
     }, [fetchLogs]);
 
+    const deleteLog = async (id) => {
+        try {
+            // Delete from backend
+            await api.delete(`/foods/${id}/`);
+
+            // Optimistically remove from the list
+            setLogs((prev) => prev.filter((f) => f.id !== id));
+
+            // Let other screens (Home/Dashboard) refresh their aggregates
+            window.dispatchEvent(new Event('foodlog:changed'));
+            window.dispatchEvent(new Event('foodlog:updated')); // backward-compat if something still listens to this
+        } catch (e) {
+            console.error('Failed to delete log', e);
+        }
+    };
+
+    
     return (
-        <div className="px-4 py-6 max-w-7xl mx-auto">
+        <div className="px-4 py-8 max-w-6xl mx-auto">
             {loading ? (
-                <p className="text-center text-gray-600">Loading...</p>
+                <div className="text-center text-snack-700">
+                    <span className="inline-block animate-pulse">Loading…</span>
+                </div>
             ) : logs.length > 0 ? (
-                <ul className="grid [grid-template-columns:repeat(auto-fill,minmax(18rem,1fr))] gap-4 justify-items-center">
+                <ul className="grid [grid-template-columns:repeat(auto-fill,minmax(18rem,1fr))] gap-5 justify-items-center">
                     {logs.map((log) => (
                         <li key={log.id} className="w-full max-w-[20rem]">
-                            <FoodLogCard log={log} onDelete={() => {}} />
+                            <FoodLogCard log={log} onDelete={deleteLog} />
                         </li>
                     ))}
                 </ul>
             ) : (
-                <p className="text-center text-gray-500">No entries for this day.</p>
+                <div className="max-w-md mx-auto self-center">
+                    <div className="bg-white snack-card rounded-2xl border border-snack-100 shadow-snack p-6 text-center">
+                        <p className="text-snack-700">No entries for this day.</p>
+                    </div>
+                </div>
             )}
         </div>
     );

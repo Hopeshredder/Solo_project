@@ -39,13 +39,15 @@ export default function DashboardPage() {
     }, []);
 
     return (
-        <div className="p-4 max-w-3xl mx-auto">
-            <h1 className="text-2xl font-bold mb-4 text-center">Dashboard</h1>
+        <div className="p-6 max-w-4xl mx-auto">
+            <h1 className="text-3xl snack-heading mb-2 text-center">Dashboard</h1>
+            <p className="text-center text-muted mb-6">Your weekly and daily calorie summaries</p>
+            <hr className="snack-divider" />
 
             {/* This was from an earlier version of the dashboard, before implimentation of the accordion week format */}
-            {/* <Card className="shadow rounded-2xl mb-4">
+            {/* <Card className="snack-card rounded-2xl mb-4">
                 <Card.Body>
-                    <Card.Title className="text-lg font-semibold mb-2">Recent Days</Card.Title>
+                    <Card.Title className="text-lg snack-heading mb-2">Recent Days</Card.Title>
                     {loading && days.length === 0 ? (
                         <div className="flex items-center gap-2 text-gray-600">
                             <Spinner animation="border" size="sm" /> Loading...
@@ -55,7 +57,7 @@ export default function DashboardPage() {
                             {days.map((d) => (
                                 <li key={d.id} className="py-2 flex items-center justify-between">
                                     <span className="font-medium">{d.date}</span>
-                                    <span className="text-gray-700">{d.daily_calorie_total} kcal</span>
+                                    <span className="text-snack-700">{d.daily_calorie_total} kcal</span>
                                 </li>
                             ))}
                             {days.length === 0 && (
@@ -66,13 +68,15 @@ export default function DashboardPage() {
                 </Card.Body>
             </Card> */}
 
-            <h3 className="text-xl font-semibold mb-2 text-center">Recent Weeks</h3>
+            <h3 className="text-xl snack-heading mb-3 text-center">Recent Weeks</h3>
             {loading && weeks.length === 0 ? (
-                <div className="flex items-center gap-2 text-gray-600">
+                <div className="flex items-center justify-center gap-2 text-snack-700">
                     <Spinner animation="border" size="sm" /> Loading...
                 </div>
             ) : (
-                <WeekList weeks={weeks} />
+                <div className="snack-section">
+                    <WeekList weeks={weeks} />
+                </div>
             )}
         </div>
     );

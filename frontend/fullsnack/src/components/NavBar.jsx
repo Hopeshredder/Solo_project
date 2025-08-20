@@ -15,47 +15,79 @@ function NavBar({ user, setUser }) {
     };
 
     return (
-        <Navbar expand="lg" className="bg-body-tertiary">
-            <Container className="flex flex-col items-center">
+        <Navbar expand="lg" className="bg-white border-b border-snack-100 shadow-snack">
+            <Container className="flex flex-col items-center gap-1 py-2 max-w-7xl mx-auto w-full">
                 {/* Username row */}
                 {user?.first_name && (
-                    <div className="text-center fw-bold py-1">
+                    <div className="text-center fw-bold py-1 text-snack-700">
                         User – {user.first_name}
                     </div>
                 )}
 
-                <Navbar.Toggle aria-controls="basic-navbar-nav" />
+                <Navbar.Toggle aria-controls="basic-navbar-nav" className="border-0 shadow-none" />
                 <Navbar.Collapse id="basic-navbar-nav">
                     {/* Centered nav links */}
                     <Nav className="mx-auto d-flex align-items-center gap-3">
                         {!user && (
                             <>
-                                <Nav.Link as={Link} to="/signup/">
+                                <Nav.Link
+                                    as={Link}
+                                    to=""
+                                    className="fw-medium text-snack-700 hover:text-snack-600"
+                                >
+                                    Home
+                                </Nav.Link>
+                                <Nav.Link
+                                    as={Link}
+                                    to="/signup/"
+                                    className="fw-medium text-snack-700 hover:text-snack-600"
+                                >
                                     Sign Up
                                 </Nav.Link>
-                                <Nav.Link as={Link} to="/login/">
+                                <Nav.Link
+                                    as={Link}
+                                    to="/login/"
+                                    className="fw-medium text-snack-700 hover:text-snack-600"
+                                >
                                     Log In
                                 </Nav.Link>
                             </>
                         )}
                         {user && (
                             <>
-                                <Nav.Link as={Link} to="">
+                                <Nav.Link
+                                    as={Link}
+                                    to=""
+                                    className="fw-medium text-snack-700 hover:text-snack-600"
+                                >
                                     Home
                                 </Nav.Link>
-                                <Nav.Link as={Link} to="/profile/">
+                                <Nav.Link
+                                    as={Link}
+                                    to="/profile/"
+                                    className="fw-medium text-snack-700 hover:text-snack-600"
+                                >
                                     Profile
                                 </Nav.Link>
-                                <Nav.Link as={Link} to="/foodlog/">
+                                <Nav.Link
+                                    as={Link}
+                                    to="/foodlog/"
+                                    className="fw-medium text-snack-700 hover:text-snack-600"
+                                >
                                     Food Log
                                 </Nav.Link>
-                                <Nav.Link as={Link} to="/dashboard/">
+                                <Nav.Link
+                                    as={Link}
+                                    to="/dashboard/"
+                                    className="fw-medium text-snack-700 hover:text-snack-600"
+                                >
                                     Dashboard
                                 </Nav.Link>
                                 <Button
                                     onClick={handleLogout}
-                                    variant="outline-danger"
+                                    variant="outline-primary"
                                     size="sm"
+                                    className="rounded-pill"
                                 >
                                     Log Out
                                 </Button>

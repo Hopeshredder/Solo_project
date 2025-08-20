@@ -129,132 +129,134 @@ const ProfilePage = () => {
     };
 
     return (
-        <div className="max-w-2xl mx-auto px-3 mt-8">
-            <Card className="shadow-sm rounded-2xl">
-                <Card.Body className="p-6">
-                    <h2 className="text-2xl font-bold mb-4 text-center">Profile</h2>
+    <div className="max-w-2xl mx-auto px-4 mt-8">
+        <Card className="bg-white snack-card rounded-2xl border border-snack-100 shadow-snack">
+            <Card.Body className="p-6">
+                <h2 className="text-3xl snack-heading mb-4 text-center">Profile</h2>
 
-                    {/* Display this when loading */}
-                    {loading ? (
-                        <div className="flex items-center justify-center gap-2">
-                            <Spinner size="sm" animation="border" role="status" />
-                            <span>Loading…</span>
+                {/* Display this when loading */}
+                {loading ? (
+                    <div className="flex items-center justify-center gap-2">
+                        <Spinner size="sm" animation="border" role="status" />
+                        <span>Loading…</span>
+                    </div>
+                ) : (
+                    <Form onSubmit={handleSubmit}>
+                        {/* Shows error if is one */}
+                        {error && (
+                            <Alert variant="danger" className="mb-3">
+                                {error}
+                            </Alert>
+                        )}
+                        {/* Shows success message if is one */}
+                        {success && (
+                            <Alert variant="success" className="mb-3">
+                                {success}
+                            </Alert>
+                        )}
+
+                        {/* Bulk of form, where changes happen */}
+                        <Form.Group className="mb-3" controlId="first_name">
+                            <Form.Label>First Name</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={firstName}
+                                onChange={(e) => setFirstName(e.target.value)}
+                                placeholder="First name"
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-3" controlId="last_name">
+                            <Form.Label>Last Name</Form.Label>
+                            <Form.Control
+                                type="text"
+                                value={lastName}
+                                onChange={(e) => setLastName(e.target.value)}
+                                placeholder="Last name"
+                            />
+                        </Form.Group>
+
+                        <Form.Group className="mb-4" controlId="email">
+                            <Form.Label>Email</Form.Label>
+                            <Form.Control
+                                type="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="your@email.com"
+                                required
+                            />
+                            <Form.Text className="text-muted">
+                                Your email is your login username.
+                            </Form.Text>
+                        </Form.Group>
+
+                        <hr className="snack-divider" />
+
+                        <div className="mb-2 text-sm text-muted">
+                            Change password (optional)
                         </div>
-                    ) : (
-                        <Form onSubmit={handleSubmit}>
-                            {/* Shows error if is one */}
-                            {error && (
-                                <Alert variant="danger" className="mb-3">
-                                    {error}
-                                </Alert>
-                            )}
-                            {/* Shows success message if is one */}
-                            {success && (
-                                <Alert variant="success" className="mb-3">
-                                    {success}
-                                </Alert>
-                            )}
-                            {/* Bulk of form, where changes happen */}
-                            <Form.Group className="mb-3" controlId="first_name">
-                                <Form.Label>First Name</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    value={firstName}
-                                    onChange={(e) => setFirstName(e.target.value)}
-                                    placeholder="First name"
-                                />
-                            </Form.Group>
 
-                            <Form.Group className="mb-3" controlId="last_name">
-                                <Form.Label>Last Name</Form.Label>
-                                <Form.Control
-                                    type="text"
-                                    value={lastName}
-                                    onChange={(e) => setLastName(e.target.value)}
-                                    placeholder="Last name"
-                                />
-                            </Form.Group>
+                        <Form.Group className="mb-3" controlId="old_password">
+                            <Form.Label>Current Password</Form.Label>
+                            <Form.Control
+                                type="password"
+                                autoComplete="current-password"
+                                value={oldPassword}
+                                onChange={(e) => setOldPassword(e.target.value)}
+                                placeholder="Enter current password"
+                            />
+                        </Form.Group>
 
-                            <Form.Group className="mb-4" controlId="email">
-                                <Form.Label>Email</Form.Label>
-                                <Form.Control
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="your@email.com"
-                                    required
-                                />
-                                <Form.Text className="text-muted">
-                                    Your email is your login username.
-                                </Form.Text>
-                            </Form.Group>
+                        <Form.Group className="mb-3" controlId="new_password">
+                            <Form.Label>New Password</Form.Label>
+                            <Form.Control
+                                type="password"
+                                autoComplete="new-password"
+                                value={newPassword}
+                                onChange={(e) => setNewPassword(e.target.value)}
+                                placeholder="Enter new password"
+                            />
+                        </Form.Group>
 
-                            <hr className="my-4" />
+                        <Form.Group className="mb-4" controlId="confirm_new_password">
+                            <Form.Label>Confirm New Password</Form.Label>
+                            <Form.Control
+                                type="password"
+                                autoComplete="new-password"
+                                value={confirmNew}
+                                onChange={(e) => setConfirmNew(e.target.value)}
+                                placeholder="Re-enter new password"
+                            />
+                        </Form.Group>
 
-                            <div className="mb-2 text-sm text-muted">
-                                Change password (optional)
-                            </div>
-
-                            <Form.Group className="mb-3" controlId="old_password">
-                                <Form.Label>Current Password</Form.Label>
-                                <Form.Control
-                                    type="password"
-                                    autoComplete="current-password"
-                                    value={oldPassword}
-                                    onChange={(e) => setOldPassword(e.target.value)}
-                                    placeholder="Enter current password"
-                                />
-                            </Form.Group>
-
-                            <Form.Group className="mb-3" controlId="new_password">
-                                <Form.Label>New Password</Form.Label>
-                                <Form.Control
-                                    type="password"
-                                    autoComplete="new-password"
-                                    value={newPassword}
-                                    onChange={(e) => setNewPassword(e.target.value)}
-                                    placeholder="Enter new password"
-                                />
-                            </Form.Group>
-
-                            <Form.Group className="mb-4" controlId="confirm_new_password">
-                                <Form.Label>Confirm New Password</Form.Label>
-                                <Form.Control
-                                    type="password"
-                                    autoComplete="new-password"
-                                    value={confirmNew}
-                                    onChange={(e) => setConfirmNew(e.target.value)}
-                                    placeholder="Re-enter new password"
-                                />
-                            </Form.Group>
-
-                            <div className="flex justify-end gap-2">
-                                <Button
-                                    type="submit"
-                                    variant="primary"
-                                    disabled={saving}
-                                >
-                                    {/* Show loading spinner while info is saved to DB/processing */}
-                                    {saving ? (
-                                        <>
-                                            <Spinner
-                                                animation="border"
-                                                size="sm"
-                                                role="status"
-                                                className="me-2"
-                                            />
-                                            Saving…
-                                        </>
-                                    ) : (
-                                        "Save Changes"
-                                    )}
-                                </Button>
-                            </div>
-                        </Form>
-                    )}
-                </Card.Body>
-            </Card>
-        </div>
+                        <div className="flex justify-end gap-2">
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                disabled={saving}
+                                className="rounded-pill"
+                            >
+                                {/* Show loading spinner while info is saved to DB/processing */}
+                                {saving ? (
+                                    <>
+                                        <Spinner
+                                            animation="border"
+                                            size="sm"
+                                            role="status"
+                                            className="me-2"
+                                        />
+                                        Saving…
+                                    </>
+                                ) : (
+                                    "Save Changes"
+                                )}
+                            </Button>
+                        </div>
+                    </Form>
+                )}
+            </Card.Body>
+        </Card>
+    </div>
     );
 };
 

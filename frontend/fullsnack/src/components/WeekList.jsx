@@ -53,21 +53,21 @@ export default function WeekList({ weeks }) {
     };
 
     return (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-3 max-w-3xl mx-auto">
             {weeks.map((w) => {
                 const isOpen = openWeek === w.start_date;
                 const days = daysByWeek[w.start_date] || [];
 
                 return (
-                    <Card key={w.id} className="shadow rounded-2xl">
-                        <Card.Body className="flex flex-col gap-2">
+                    <Card key={w.id} className="bg-white snack-card rounded-2xl border border-snack-100 shadow-snack">
+                        <Card.Body className="flex flex-col gap-2 p-4">
                             <div className="flex items-center justify-between">
                                 {/* Text on the week accordion */}
                                 <div className="flex flex-col">
-                                    <span className="font-semibold">
+                                    <span className="font-semibold snack-heading">
                                         Week of {formatWeekStart(w.start_date)}
                                     </span>
-                                    <span className="text-sm text-gray-700">
+                                    <span className="text-sm text-snack-700">
                                         {w.weekly_calorie_total} kcal
                                     </span>
                                 </div>
@@ -75,14 +75,14 @@ export default function WeekList({ weeks }) {
                                 <Button
                                     variant="outline-primary"
                                     size="sm"
+                                    className="rounded-pill"
                                     onClick={() => toggleWeek(w.start_date)}
                                 >
                                     {isOpen ? 'Hide days' : 'Show days'}
                                 </Button>
                             </div>
-
                             {isOpen && (
-                                <div className="border-t pt-2">
+                                <div className="mt-2">
                                     {/* Loading spinner */}
                                     {loadingWeek === w.start_date && (
                                         <div className="flex items-center gap-2 text-gray-600">
@@ -93,31 +93,34 @@ export default function WeekList({ weeks }) {
                                     {/* Days display */}
                                     {loadingWeek !== w.start_date && (
                                         <>
-                                            {/* If no days in storage, say that */}
                                             {days.length === 0 ? (
                                                 <div className="text-gray-500 text-sm">
                                                     No days found for this week.
                                                 </div>
                                             ) : (
-                                                <ul className="divide-y">
-                                                    {/* For each day, print out the day of the week and daily calorie total */}
+                                                // Individual "bubble" items (no divide-y). Each li has its own border & rounding.
+                                                <ul className="flex flex-col gap-2">
                                                     {days.map((d) => (
-                                                        <li key={d.id} className="py-2 flex items-center justify-between">
-                                                            <span className="font-medium">
-                                                                {formatWeekdayLabel(d.date)}
-                                                            </span>
-                                                            <div className="flex items-center gap-3">
-                                                                <span className="text-gray-700">
-                                                                    {d.daily_calorie_total} kcal
+                                                        <li
+                                                            key={d.id}
+                                                            className="rounded-xl border border-snack-100 bg-white px-3 py-2 shadow-sm hover:shadow-snack transition"
+                                                        >
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="font-medium">
+                                                                    {formatWeekdayLabel(d.date)}
                                                                 </span>
-                                                                {/* Link to a page that shows that day's details */}
-                                                                <Link
-                                                                    className="text-primary hover:underline"
-                                                                    to={`/days/${d.date}/`}
-                                                                    title={`Open log for ${d.date}`}
-                                                                >
-                                                                    View Day
-                                                                </Link>
+                                                                <div className="flex items-center gap-3">
+                                                                    <span className="text-snack-700 font-medium tabular-nums whitespace-nowrap">
+                                                                        {d.daily_calorie_total} kcal
+                                                                    </span>
+                                                                    <Link
+                                                                        className="text-snack-700 hover:text-snack-600 fw-medium"
+                                                                        to={`/days/${d.date}/`}
+                                                                        title={`Open log for ${d.date}`}
+                                                                    >
+                                                                        View Day
+                                                                    </Link>
+                                                                </div>
                                                             </div>
                                                         </li>
                                                     ))}
@@ -134,7 +137,7 @@ export default function WeekList({ weeks }) {
 
             {/* If user has no weeks in DB, display this */}
             {weeks.length === 0 && (
-                <div className="text-gray-500">No week summaries yet.</div>
+                <div className="text-gray-500 text-center">No week summaries yet.</div>
             )}
         </div>
     );

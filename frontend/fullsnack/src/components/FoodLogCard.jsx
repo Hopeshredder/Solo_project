@@ -85,18 +85,25 @@ const FoodLogCard = ({ log, onDelete, onUpdated, credit: creditProp }) => {
     };
 
     return (
-        <Card className="w-full h-full border rounded bg-white shadow-sm flex flex-col">
+        <Card className="w-full h-full bg-white snack-card rounded-2xl flex flex-col">
             {/* Image */}
             {image_url && (
-                <Card.Img variant="top" src={image_url} alt={food_name || "Food Image"} />
+                <Card.Img
+                    variant="top"
+                    src={image_url}
+                    alt={food_name || "Food Image"}
+                    className="rounded-t-2xl object-cover max-h-48"
+                />
             )}
 
-            <Card.Body className="flex flex-col gap-2">
+            <Card.Body className="flex flex-col gap-3">
                 {/* Card title */}
                 <div className="flex items-start justify-between gap-3">
-                    <Card.Title className="text-lg font-semibold">{food_name}</Card.Title>
+                    <Card.Title className="text-lg font-semibold snack-heading mb-0">
+                        {food_name}
+                    </Card.Title>
                     <div className="flex gap-2">
-                        <Button variant="outline-secondary" size="sm" onClick={open}>
+                        <Button variant="outline-primary" size="sm" onClick={open}>
                             Edit
                         </Button>
                         {onDelete && (
@@ -112,12 +119,49 @@ const FoodLogCard = ({ log, onDelete, onUpdated, credit: creditProp }) => {
                 </div>
 
                 {/* Card food info */}
-                <Card.Text as="div" className="space-y-1">
-                    <div>Calories: {calories}</div>
-                    <div>Protein: {protein} g</div>
-                    <div>Carbs: {carbs} g</div>
-                    <div>Fat: {fat} g</div>
+                <Card.Text as="div" className="mt-1 grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm">
+                    <div className="p-2 rounded-xl border bg-white text-center">
+                        <div className="text-muted text-xs leading-tight whitespace-nowrap">Calories</div>
+                        <div className="font-semibold tabular-nums">
+                            <span className="inline-flex items-baseline gap-1 whitespace-nowrap">
+                                {calories}
+                                <span className="text-xs">kcal</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="p-2 rounded-xl border bg-white text-center">
+                        <div className="text-muted text-xs leading-tight whitespace-nowrap">Protein</div>
+                        <div className="font-semibold tabular-nums">
+                            <span className="inline-flex items-baseline gap-1 whitespace-nowrap">
+                                {protein}
+                                <span className="text-xs">g</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="p-2 rounded-xl border bg-white text-center">
+                        <div className="text-muted text-xs leading-tight whitespace-nowrap">Carbs</div>
+                        <div className="font-semibold tabular-nums">
+                            <span className="inline-flex items-baseline gap-1 whitespace-nowrap">
+                                {carbs}
+                                <span className="text-xs">g</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div className="p-2 rounded-xl border bg-white text-center">
+                        <div className="text-muted text-xs leading-tight whitespace-nowrap">Fat</div>
+                        <div className="font-semibold tabular-nums">
+                            <span className="inline-flex items-baseline gap-1 whitespace-nowrap">
+                                {fat}
+                                <span className="text-xs">g</span>
+                            </span>
+                        </div>
+                    </div>
                 </Card.Text>
+
+
 
                 {/* Credit block required by Unsplash */}
                 {image_url && (
@@ -129,6 +173,7 @@ const FoodLogCard = ({ log, onDelete, onUpdated, credit: creditProp }) => {
                                     href={credit.profile}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    className="text-decoration-none"
                                 >
                                     {credit.name}
                                 </a>{" "}
@@ -137,6 +182,7 @@ const FoodLogCard = ({ log, onDelete, onUpdated, credit: creditProp }) => {
                                     href={UNSPLASH_HOME}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    className="text-decoration-none"
                                 >
                                     Unsplash
                                 </a>
@@ -148,6 +194,7 @@ const FoodLogCard = ({ log, onDelete, onUpdated, credit: creditProp }) => {
                                     href={UNSPLASH_HOME}
                                     target="_blank"
                                     rel="noopener noreferrer"
+                                    className="text-decoration-none"
                                 >
                                     Unsplash
                                 </a>
@@ -161,7 +208,7 @@ const FoodLogCard = ({ log, onDelete, onUpdated, credit: creditProp }) => {
             <Modal show={show} onHide={close} centered>
                 <Form onSubmit={handleSubmit}>
                     <Modal.Header closeButton>
-                        <Modal.Title>Edit Food Log</Modal.Title>
+                        <Modal.Title className="snack-heading">Edit Food Log</Modal.Title>
                     </Modal.Header>
 
                     <Modal.Body>
@@ -235,7 +282,6 @@ const FoodLogCard = ({ log, onDelete, onUpdated, credit: creditProp }) => {
                                 />
                             </Form.Group>
                         </div>
-
                     </Modal.Body>
 
                     <Modal.Footer>
@@ -257,6 +303,6 @@ const FoodLogCard = ({ log, onDelete, onUpdated, credit: creditProp }) => {
             </Modal>
         </Card>
     );
-};
+}
 
 export default FoodLogCard;

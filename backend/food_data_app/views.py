@@ -43,7 +43,7 @@ class FoodLogs(APIView):
         return Response(serialized.data, status=s.HTTP_200_OK)
 
     def post(self, request):
-        # Note: FoodLog.save() sets parent_day (Day/Week) and updates totals
+        # FoodLog.save() sets parent_day (Day/Week) and updates totals
         ser = FoodLogSerializer(data=request.data)
         if ser.is_valid():
             food = ser.save(user=request.user)
@@ -70,12 +70,18 @@ class FoodLogSingle(APIView):
         return Response(ser.errors, status=s.HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
+        # Gets the log to be deleted
         food = self._get(request, pk)
-        # keep references if you plan to manually recalc after delete;
-        # your model handles recalc on save, but delete doesn’t call save.
-        # If you rely on totals, you can recalc via a helper here.
+        # Saves the parent day of the log before deletion
+        parent_day = food.parent_day
+
+        # Removes the log then recomputes day/week totals
         food.delete()
-        return Response({"detail": "Deleted."}, status=s.HTTP_204_NO_CONTENT)
+        food.recalculate_totals()
+
+        # Returns a message saying the delete was successful and the new daily calorie total
+        parent_day.refresh_from_db(fields=["daily_calorie_total"])
+        return Response({"detail": "Deleted.", "daily_total": parent_day.daily_calorie_total}, status=s.HTTP_200_OK)
 
 
 # Looks up nutritional data from the FDC API from a given food name
