@@ -43,7 +43,7 @@ Built with **Django REST** (API) and **React** (Vite, Tailwind + React-Bootstrap
 - Axios
 
 **3rd-Party APIs**
-- [CalorieNinjas](https://calorieninjas.com/) — nutrition data
+- [FDC API](https://fdc.nal.usda.gov/api-guide) — nutrition data
 - [Unsplash](https://unsplash.com/developers) — food images + attribution
 
 ---
@@ -84,10 +84,6 @@ Built with **Django REST** (API) and **React** (Vite, Tailwind + React-Bootstrap
 - `GET   /api/images/search/?q=QUERY` → preview candidates `[{ id, alt, thumb, full, credit }, ...]`
 - `PATCH /api/images/foodlogs/:id/set/` with `{ q }` → sets a photo for the log and returns `{ foodlog, credit }`
 
-**Auth header**
-```
-Authorization: Token <your-token-here>
-```
 
 ---
 
@@ -150,7 +146,6 @@ npm run dev
 VITE_API_BASE=http://localhost:8000/api/
 ```
 
-> If you use custom Tailwind brand classes (e.g., `text-snack-700`, `bg-snack-50`), make sure your `tailwind.config.js` has correct `content` globs and (optionally) a safelist:
 ```js
 // tailwind.config.js (excerpt)
 export default {
@@ -184,19 +179,14 @@ curl "http://localhost:8000/api/foods/?day=$(date -u +%F)" -H "Authorization: To
 
 ---
 
-## 📸 Screenshots (placeholders)
-- Home — logo + Today’s Calories card  
-- Food Log — search → preview → add; edit modal  
-- Dashboard — expanded week with day bubbles  
-- Day View — grid of entries for a specific date  
-- Profile — update info + password section  
+## 📸 Screenshots
+- Home — ![Home](./assets/home.png)
+- Food Log — ![FoodLog](./assets/foodlog.png) 
+- Dashboard — ![Dashboard](./assets/dashboard.png) 
+- Day View — ![Day View](./assets/days.png) 
+- Profile — ![Profile](./assets/profile.png)
+- Database — ![Database](./assets/db-schema.png)
 
-Place your images under `frontend/public/assets/` or `assets/` and reference them here, e.g.:
-
-```md
-![Home](./assets/home.png)
-![Food Log](./assets/foodlog.png)
-```
 
 ---
 
