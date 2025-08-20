@@ -180,13 +180,18 @@ curl "http://localhost:8000/api/foods/?day=$(date -u +%F)" -H "Authorization: To
 ---
 
 ## 📸 Screenshots
-- Home — ![Home](./assets/home.png)
-- Food Log — ![FoodLog](./assets/foodlog.png) 
-- Dashboard — ![Dashboard](./assets/dashboard.png) 
-- Day View — ![Day View](./assets/days.png) 
-- Profile — ![Profile](./assets/profile.png)
-- Database — ![Database](./assets/db-schema.png)
-
+- **Home**<br>
+  ![Home](./assets/home.png)
+- **Food Log**<br>
+  ![Food Log](./assets/foodlog.png)
+- **Dashboard**<br>
+  ![Dashboard](./assets/dashboard.png)
+- **Day View**<br>
+  ![Day View](./assets/days.png)
+- **Profile**<br>
+  ![Profile](./assets/profile.png)
+- **Database**<br>
+  ![Database](./assets/db-schema.png)
 
 ---
 
